@@ -1,5 +1,5 @@
-use std::net::TcpListener;
 use reqwest;
+use std::net::TcpListener;
 
 #[tokio::test]
 async fn health_check_works() {
