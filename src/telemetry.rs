@@ -14,7 +14,11 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 /// We need to explicitly call out that the returned subscriber is
 /// `Send` and `Sync` to make it possible to pass it to `init_subscriber`
 /// later on.
-pub fn get_subscriber<Sink>(name: String, env_filter: String, sink: Sink) -> impl Subscriber + Sync + Send
+pub fn get_subscriber<Sink>(
+    name: String,
+    env_filter: String,
+    sink: Sink,
+) -> impl Subscriber + Sync + Send
 where
     // This "weird" syntax is a higher-ranked trait bound (HRTB)
     // It basically means that Sink implements the `MakeWriter`
