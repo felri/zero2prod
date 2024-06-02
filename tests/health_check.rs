@@ -92,6 +92,32 @@ async fn subscribe_returns_a_400_for_invalid_data() {
     }
 }
 
+#[tokio::test]
+async fn subscribe_returns_a_400_when_fields_are_present_but_invalid() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+    let json_payload = vec![
+        r#"{"email": "not-so-valid-email", "name": ""}"#,
+        r#"{"email": "", "name": "a"}"#,
+        r#"{"email": "", "name": ""}"#,
+    ];
+
+    for json_payload in json_payload {
+        // Act
+        let response = client
+            .post(&format!("{}/subscriptions", &app.address))
+            .header("Content-Type", "application/json")
+            .body(json_payload)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+
+        // Assert
+        assert_eq!(400, response.status().as_u16());
+    }
+}
+
 async fn spawn_app() -> TestApp {
     // The first time `initialize` is invoked the code in `TRACING` is executed.
     // All other invocations will instead skip execution.
