@@ -1,20 +1,15 @@
+use serde_json::to_string;
+
 use crate::helpers::spawn_app;
 
 #[tokio::test]
 async fn subscribe_returns_a_200_for_valid_data() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
     let json_payload = r#"{"email": "something@mail.com", "name": "name"}"#;
 
     // Act
-    let response = client
-        .post(&format!("{}/subscriptions", &app.address))
-        .header("Content-Type", "application/json")
-        .body(json_payload)
-        .send()
-        .await
-        .expect("Failed to execute request.");
+    let response = app.post_subscriptions(json_payload.to_string()).await;
 
     // Assert
     assert_eq!(200, response.status().as_u16());
@@ -30,7 +25,6 @@ async fn subscribe_returns_a_200_for_valid_data() {
 async fn subscribe_returns_a_400_for_invalid_data() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
     let json_error_vec = vec![
         r#"{"email": "something@mail.com"}"#,
         r#"{"name": "name"}"#,
@@ -40,14 +34,7 @@ async fn subscribe_returns_a_400_for_invalid_data() {
 
     for json_payload in json_error_vec {
         // Act
-        let response = client
-            .post(&format!("{}/subscriptions", &app.address))
-            .header("Content-Type", "application/json")
-            .body(json_payload)
-            .send()
-            .await
-            .expect("Failed to execute request.");
-
+        let response = app.post_subscriptions(json_payload.to_string()).await;
         // Assert
         assert_eq!(400, response.status().as_u16());
     }
@@ -57,7 +44,6 @@ async fn subscribe_returns_a_400_for_invalid_data() {
 async fn subscribe_returns_a_400_when_fields_are_present_but_invalid() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
     let json_payload = vec![
         r#"{"email": "not-so-valid-email", "name": ""}"#,
         r#"{"email": "", "name": "a"}"#,
@@ -66,14 +52,7 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_invalid() {
 
     for json_payload in json_payload {
         // Act
-        let response = client
-            .post(&format!("{}/subscriptions", &app.address))
-            .header("Content-Type", "application/json")
-            .body(json_payload)
-            .send()
-            .await
-            .expect("Failed to execute request.");
-
+        let response = app.post_subscriptions(json_payload.to_string()).await;
         // Assert
         assert_eq!(400, response.status().as_u16());
     }

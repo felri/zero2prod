@@ -46,12 +46,12 @@ impl EmailClient {
         let request_body = SendEmailRequest {
             from: self.sender.as_ref(),
             to: recepient.as_ref(),
-            subject: subject,
+            subject,
             html_body: html_content,
             text_body: text_content,
         };
 
-        let builder = self
+        let _builder = self
             .http_client
             .post(&url)
             .header(
