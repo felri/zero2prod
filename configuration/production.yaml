@@ -1,4 +1,10 @@
 application:
   host: 0.0.0.0
+
 database:
   require_ssl: true
+
+email_client:
+  base_url: "https://api.postmarkapp.com"
+  sender_email: "lecak48738@acuxi.com"
+  authorization_code: "932f904f-c8b9-442c-a1ea-bffe8afda988"
