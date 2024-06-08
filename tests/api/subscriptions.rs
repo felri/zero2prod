@@ -1,15 +1,20 @@
-use serde_json::to_string;
-
 use crate::helpers::spawn_app;
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
 async fn subscribe_returns_a_200_for_valid_data() {
     // Arrange
     let app = spawn_app().await;
-    let json_payload = r#"{"email": "something@mail.com", "name": "name"}"#;
+    let body = r#"{"email": "something@mail.com", "name": "name"}"#;
 
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&app.email_server)
+        .await;
     // Act
-    let response = app.post_subscriptions(json_payload.to_string()).await;
+    let response = app.post_subscriptions(body.to_string()).await;
 
     // Assert
     assert_eq!(200, response.status().as_u16());
@@ -32,9 +37,9 @@ async fn subscribe_returns_a_400_for_invalid_data() {
         // r#"{"email": "not-an-email", "name": "name"}"#,
     ];
 
-    for json_payload in json_error_vec {
+    for body in json_error_vec {
         // Act
-        let response = app.post_subscriptions(json_payload.to_string()).await;
+        let response = app.post_subscriptions(body.to_string()).await;
         // Assert
         assert_eq!(400, response.status().as_u16());
     }
@@ -50,10 +55,27 @@ async fn subscribe_returns_a_400_when_fields_are_present_but_invalid() {
         r#"{"email": "", "name": ""}"#,
     ];
 
-    for json_payload in json_payload {
+    for body in json_payload {
         // Act
-        let response = app.post_subscriptions(json_payload.to_string()).await;
+        let response = app.post_subscriptions(body.to_string()).await;
         // Assert
         assert_eq!(400, response.status().as_u16());
     }
+}
+
+#[tokio::test]
+async fn subscribe_sends_confirmation_email_for_valid_data() {
+    // Arrange
+    let app = spawn_app().await;
+    let body = r#"{"email": "something@mail.com", "name": "name"}"#;
+
+    Mock::given(path("/email"))
+        .and(method("POST"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(1)
+        .mount(&app.email_server)
+        .await;
+
+    // Act
+    app.post_subscriptions(body.to_string()).await;
 }
